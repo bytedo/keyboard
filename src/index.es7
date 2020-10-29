@@ -1,0 +1,31 @@
+/**
+ *
+ * @author yutent<yutent.io@gmail.com>
+ * @date 2020/10/29 16:48:26
+ */
+
+import KEY_DICT from './key.dict.js'
+
+var log = console.log
+
+function keydown(ev) {
+  var { code, keyCode } = ev
+
+  // log(ev.keyCode, ev.code, KEYCODE_DICT[keyCode])
+}
+
+export default class Keyboard {
+  constructor() {
+    this.__EVENTS__ = {}
+    document.addEventListener('keydown', keydown, false)
+  }
+
+  destroy() {
+    delete this.__EVENTS__
+    document.removeEventListener('keydown', keydown, false)
+  }
+
+  on(action, callback) {
+    //
+  }
+}
