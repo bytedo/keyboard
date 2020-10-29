@@ -1,6 +1,3 @@
-*.min.js
-*.min.css
-index.html
 .vscode
 node_modules/
 dist/
