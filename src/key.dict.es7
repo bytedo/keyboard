@@ -1,4 +1,13 @@
-export default {
+// 允许组合出现的辅助键
+export const MULTI_KEYS = {
+  ctrl: 1,
+  shift: 1,
+  alt: 1,
+  super: 1
+}
+
+// 按键对应的code值
+export const KEY_DICT = {
   '0': 48, // Digit{N},  Numpad{N}
   '1': 49,
   '2': 50,

@@ -4,15 +4,17 @@
  * @date 2020/10/29 16:48:26
  */
 
-import KEY_DICT from './key.dict.js'
+import { KEY_DICT, MULTI_KEYS } from './key.dict.js'
 
 var log = console.log
 
 function keydown(ev) {
   var { code, keyCode } = ev
 
-  // log(ev.keyCode, ev.code, KEYCODE_DICT[keyCode])
+  log(ev.keyCode, ev.code, ev.target)
 }
+
+function createCheckFunc(act) {}
 
 export default class Keyboard {
   constructor() {
@@ -25,7 +27,52 @@ export default class Keyboard {
     document.removeEventListener('keydown', keydown, false)
   }
 
-  on(action, callback) {
-    //
+  on(act, callback) {
+    var key = []
+    var dict = []
+
+    act.forEach(it => {
+      var tmp = {}
+      dict.push(tmp)
+      it = it.split('+').map(k => {
+        k = k.trim().toLowerCase()
+        tmp[k] = KEY_DICT[k]
+        return k
+      })
+      key.push(it.join('+'))
+    })
+
+    key = key.join(',')
+
+    if (this.__EVENTS__[key]) {
+      this.__EVENTS__[key].fn.push(callback)
+    } else {
+      this.__EVENTS__[key] = {
+        dict,
+        check(ev) {
+          var { keyCode, code } = ev
+          var now = 0
+          var actions = this.dict.concat()
+          var action = actions.shift()
+          var checked = false
+
+          while (action) {
+            if (now === 0) {
+            } else {
+              var _now = Date.now()
+              if (_now - now > 100) {
+                checked = false
+                break
+              }
+              now = _now
+            }
+          }
+
+          return checked
+        },
+        fn: [callback]
+      }
+    }
+    log(this.__EVENTS__)
   }
 }
