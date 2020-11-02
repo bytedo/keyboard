@@ -8,23 +8,34 @@ import { KEY_DICT, MULTI_KEYS } from './key.dict.js'
 
 var log = console.log
 
-function keydown(ev) {
-  var { code, keyCode } = ev
-
-  log(ev.keyCode, ev.code, ev.target)
+function bind(fn) {
+  document.addEventListener('keydown', fn, false)
+  return fn
 }
 
-function createCheckFunc(act) {}
+function unbind(fn) {
+  document.removeEventListener('keydown', fn, false)
+}
 
 export default class Keyboard {
   constructor() {
     this.__EVENTS__ = {}
-    document.addEventListener('keydown', keydown, false)
+    this._keydown = bind(ev => {
+      for (let k in this.__EVENTS__) {
+        var item = this.__EVENTS__[k]
+        if (item.check(ev)) {
+          item.fn.forEach(function(fn) {
+            fn(ev)
+          })
+          break
+        }
+      }
+    })
   }
 
   destroy() {
     delete this.__EVENTS__
-    document.removeEventListener('keydown', keydown, false)
+    unbind(this._keydown)
   }
 
   on(act, callback) {
@@ -56,6 +67,8 @@ export default class Keyboard {
           var action = actions.shift()
           var checked = false
 
+          log('check: ', keyCode, code, ev)
+
           while (action) {
             if (now === 0) {
             } else {
@@ -66,6 +79,7 @@ export default class Keyboard {
               }
               now = _now
             }
+            action = actions.shift()
           }
 
           return checked
