@@ -28,7 +28,11 @@ function hide(target, name, value) {
 function check(ev) {
   var checked = false
 
-  checked = ev.keyCode === this.keys.key
+  if (typeof this.keys.key === 'object') {
+    checked = this.keys.key.includes(ev.keyCode)
+  } else {
+    checked = ev.keyCode === this.keys.key
+  }
 
   if (checked) {
     for (let k of this.keys) {
