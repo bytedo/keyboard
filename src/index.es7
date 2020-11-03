@@ -6,8 +6,6 @@
 
 import { KEY_DICT, MULTI_KEYS, MULTI_KEY_CODES } from './key.dict.js'
 
-var log = console.log
-
 function bind(fn) {
   document.addEventListener('keydown', fn, false)
   return fn
@@ -17,47 +15,102 @@ function unbind(fn) {
   document.removeEventListener('keydown', fn, false)
 }
 
+function hide(target, name, value) {
+  Object.defineProperty(target, name, {
+    value,
+    writable: true,
+    enumerable: false,
+    configurable: true
+  })
+}
+
+// 按键检测
+function check(ev) {
+  var checked = false
+
+  checked = ev.keyCode === this.keys.key
+
+  if (checked) {
+    for (let k of this.keys) {
+      checked = ev[`${k}Key`]
+    }
+  }
+
+  return checked
+}
+
 export default class Keyboard {
   constructor() {
-    this.__EVENTS__ = []
-    this.__LAST__ = {}
-    this.__TIME__ = 0
+    hide(this, '__EVENTS__', {})
 
-    this._keydown = bind(ev => {
-      if (MULTI_KEY_CODES.includes(ev.keyCode)) {
-        return
-      }
-      for (let k in this.__EVENTS__) {
-        var item = this.__EVENTS__[k]
-        var res = item.check(ev)
-
-        if (res) {
-          this.__LAST__[k]++
-        } else {
-          this.__LAST__[k] = -1
+    hide(
+      this,
+      '_keydown',
+      bind(ev => {
+        if (MULTI_KEY_CODES.includes(ev.keyCode)) {
+          return
         }
-        log('-------------------', res, this.__LAST__[k])
 
-        if (this.__LAST__[k] + 1 === item.dict.length) {
-          item.fn.forEach(function(fn) {
-            fn(ev)
-          })
-          break
+        for (let k in this.__EVENTS__) {
+          var item = this.__EVENTS__[k]
+          var res = item.check(ev)
+          var now = Date.now()
+          var end = false // 是否结束检测
+
+          // 假设之前有激活过, 优先再检测子组合
+          if (item.actived === true) {
+            // 如果超时(300毫秒)了, 则不再管子组合了
+            if (now - item.last > 300) {
+              delete item.actived
+            } else {
+              for (let next of item.next) {
+                let tmp = next.check(ev)
+                if (tmp) {
+                  end = true
+                  // 第2组一定有回调,无需判断
+                  next.fn.forEach(function(fn) {
+                    fn(ev)
+                  })
+                  break
+                }
+              }
+            }
+          }
+
+          // 第一组, 只要检测通过了, 就触发回调
+          if (res) {
+            end = true
+            if (item.next) {
+              item.actived = true
+              item.last = now
+            }
+            // 有回调就触发
+            if (item.fn) {
+              item.fn.forEach(function(fn) {
+                fn(ev)
+              })
+            }
+          }
+
+          // 命中了, 后面的就不再检测了
+          if (end) {
+            break
+          }
         }
-      }
-    })
+      })
+    )
   }
 
   destroy() {
-    delete this.__EVENTS__
     unbind(this._keydown)
+    delete this.__EVENTS__
+    delete this._keydown
   }
 
-  on(act, callback) {
-    var key = []
+  __parse_action__(act) {
+    var keys = []
     var dict = []
     var passed = true // 语法检测通过
-    var _this = this
 
     act.forEach(it => {
       var tmp = []
@@ -81,44 +134,126 @@ export default class Keyboard {
         }
         return k
       })
-      key.push(it.join('+'))
+      keys.push(it.join('+'))
     })
 
+    return { keys, dict, passed }
+  }
+
+  off(act, callback) {
+    if (act.length < 1 || typeof callback !== 'function') {
+      return console.error('无效热键或回调')
+    }
+
+    let { keys, dict, passed } = this.__parse_action__(act)
+
     if (passed) {
-      key = key.join(',')
-      this.__LAST__[key] = -1
+      let k1 = keys[0]
 
-      if (this.__EVENTS__[key]) {
-        this.__EVENTS__[key].fn.push(callback)
-      } else {
-        this.__EVENTS__[key] = {
-          key,
-          dict,
-          check(ev) {
-            var now = Date.now()
-            var idx = _this.__LAST__[this.key]
-            var action = this.dict[idx + 1]
-            var checked = false
+      if (keys.length === 1) {
+        if (this.__EVENTS__[k1] && this.__EVENTS__[k1].fn) {
+          let i = 0
+          for (let fn of this.__EVENTS__[k1].fn) {
+            if (fn === callback) {
+              this.__EVENTS__[k1].fn.splice(i, 1)
+              // 只剩1个, 删除fn字段
+              if (this.__EVENTS__[k1].fn.length < 1) {
+                delete this.__EVENTS__[k1].fn
 
-            if (action) {
-              checked = ev.keyCode === action.key
-
-              if (idx > -1) {
-                if (now - _this.__TIME__ > 100) {
-                  checked = false
+                // 删完fn字段, 如果没有next字段的话, 整个热键删除
+                if (!this.__EVENTS__[k1].next) {
+                  delete this.__EVENTS__[k1]
                 }
               }
-              if (checked) {
-                for (let k of action) {
-                  checked = ev[`${k}Key`]
-                }
-              }
-              log(action, now, checked)
+              break
             }
+            i++
+          }
+        }
+      } else {
+        if (this.__EVENTS__[k1] && this.__EVENTS__[k1].next) {
+          let k2 = keys[1]
+          let i = 0
+          let sub
 
-            return checked
-          },
-          fn: [callback]
+          for (sub of this.__EVENTS__[k1].next) {
+            if (sub.id === k2) {
+              break
+            }
+            i++
+          }
+
+          if (sub.fn) {
+            let j = 0
+            for (let fn of sub.fn) {
+              if (fn === callback) {
+                sub.fn.splice(j, 1)
+                // 如果该组的事件为空了, 则删除该组合
+                if (sub.fn.length < 1) {
+                  this.__EVENTS__[k1].next.splice(i, 1)
+
+                  // 第2组, 如果回调队列为空了, 直接删除整个第2组
+                  if (this.__EVENTS__[k1].next.length < 1) {
+                    delete this.__EVENTS__[k1].next
+
+                    // 如果此时, 上一层没的回调了, 则整个热键删除
+                    if (!this.__EVENTS__[k1].fn) {
+                      delete this.__EVENTS__[k1]
+                    }
+                  }
+                }
+              }
+              j++
+            }
+          }
+        }
+      }
+    }
+  }
+
+  on(act, callback) {
+    if (act.length < 1 || typeof callback !== 'function') {
+      return console.error('无效热键或回调')
+    }
+
+    let { keys, dict, passed } = this.__parse_action__(act)
+
+    if (passed) {
+      // 最多支持2组
+      let first = keys.shift()
+      let second = keys.shift()
+
+      if (!this.__EVENTS__[first]) {
+        this.__EVENTS__[first] = {
+          id: first,
+          keys: dict[0],
+          last: 0, //上次触发时间戳
+          check
+        }
+      }
+
+      if (second) {
+        if (this.__EVENTS__[first].next) {
+          for (let i = -1, it; (it = this.__EVENTS__[first].next[++i]); ) {
+            if (it.id === second) {
+              it.fn.push(callback)
+              return
+            }
+          }
+        }
+        this.__EVENTS__[first].next = [
+          {
+            id: second,
+            keys: dict[1],
+            check,
+            fn: [callback]
+          }
+        ]
+      } else {
+        if (this.__EVENTS__[first].fn) {
+          this.__EVENTS__[first].fn.push(callback)
+        } else {
+          this.__EVENTS__[first].fn = [callback]
         }
       }
     }

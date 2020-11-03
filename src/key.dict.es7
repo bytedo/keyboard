@@ -69,8 +69,8 @@ export const KEY_DICT = {
   backspace: 8,
   numlock: 12,
   capslock: 20,
-  escape: 27,
-  contextmenu: 93,
+  esc: 27,
+  menu: 93,
   insert: 45,
   delete: 46,
   pagedown: 34,
@@ -95,5 +95,8 @@ export const KEY_DICT = {
   f12: 123,
   f13: 124, // Print键
   f14: 125, // Screen键
-  f15: 126 // Pause键
+  f15: 126, // Pause键
+  print: 124, // Print键
+  screen: 125, // Screen键
+  pause: 126 // Pause键
 }
