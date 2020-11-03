@@ -3,8 +3,10 @@ export const MULTI_KEYS = {
   ctrl: 1,
   shift: 1,
   alt: 1,
-  super: 1
+  meta: 1
 }
+
+export const MULTI_KEY_CODES = [16, 17, 18, 91]
 
 // 按键对应的code值
 export const KEY_DICT = {
@@ -62,7 +64,7 @@ export const KEY_DICT = {
   ctrl: 17, // ControlLeft,  ControlRight
   alt: 18, // AltLeft,  AltRight
   space: 32,
-  super: 91, // MetaLeft,  MetaRight
+  meta: 91, // MetaLeft,  MetaRight
   tab: 9,
   backspace: 8,
   numlock: 12,

@@ -4,7 +4,7 @@
  * @date 2020/10/29 16:48:26
  */
 
-import { KEY_DICT, MULTI_KEYS } from './key.dict.js'
+import { KEY_DICT, MULTI_KEYS, MULTI_KEY_CODES } from './key.dict.js'
 
 var log = console.log
 
@@ -19,11 +19,26 @@ function unbind(fn) {
 
 export default class Keyboard {
   constructor() {
-    this.__EVENTS__ = {}
+    this.__EVENTS__ = []
+    this.__LAST__ = {}
+    this.__TIME__ = 0
+
     this._keydown = bind(ev => {
+      if (MULTI_KEY_CODES.includes(ev.keyCode)) {
+        return
+      }
       for (let k in this.__EVENTS__) {
         var item = this.__EVENTS__[k]
-        if (item.check(ev)) {
+        var res = item.check(ev)
+
+        if (res) {
+          this.__LAST__[k]++
+        } else {
+          this.__LAST__[k] = -1
+        }
+        log('-------------------', res, this.__LAST__[k])
+
+        if (this.__LAST__[k] + 1 === item.dict.length) {
           item.fn.forEach(function(fn) {
             fn(ev)
           })
@@ -41,52 +56,71 @@ export default class Keyboard {
   on(act, callback) {
     var key = []
     var dict = []
+    var passed = true // 语法检测通过
+    var _this = this
 
     act.forEach(it => {
-      var tmp = {}
+      var tmp = []
       dict.push(tmp)
       it = it.split('+').map(k => {
         k = k.trim().toLowerCase()
-        tmp[k] = KEY_DICT[k]
+        if (MULTI_KEYS[k]) {
+          if (tmp.includes(k)) {
+            passed = false
+            console.error('功能键,同组中不能重复。⎣%s⎤', it)
+          } else {
+            tmp.push(k)
+          }
+        } else {
+          if (tmp.key) {
+            passed = false
+            console.error('非功能键,同组不能出现多个。⎣%s⎤', it)
+          } else {
+            tmp.key = KEY_DICT[k]
+          }
+        }
         return k
       })
       key.push(it.join('+'))
     })
 
-    key = key.join(',')
+    if (passed) {
+      key = key.join(',')
+      this.__LAST__[key] = -1
 
-    if (this.__EVENTS__[key]) {
-      this.__EVENTS__[key].fn.push(callback)
-    } else {
-      this.__EVENTS__[key] = {
-        dict,
-        check(ev) {
-          var { keyCode, code } = ev
-          var now = 0
-          var actions = this.dict.concat()
-          var action = actions.shift()
-          var checked = false
+      if (this.__EVENTS__[key]) {
+        this.__EVENTS__[key].fn.push(callback)
+      } else {
+        this.__EVENTS__[key] = {
+          key,
+          dict,
+          check(ev) {
+            var now = Date.now()
+            var idx = _this.__LAST__[this.key]
+            var action = this.dict[idx + 1]
+            var checked = false
 
-          log('check: ', keyCode, code, ev)
+            if (action) {
+              checked = ev.keyCode === action.key
 
-          while (action) {
-            if (now === 0) {
-            } else {
-              var _now = Date.now()
-              if (_now - now > 100) {
-                checked = false
-                break
+              if (idx > -1) {
+                if (now - _this.__TIME__ > 100) {
+                  checked = false
+                }
               }
-              now = _now
+              if (checked) {
+                for (let k of action) {
+                  checked = ev[`${k}Key`]
+                }
+              }
+              log(action, now, checked)
             }
-            action = actions.shift()
-          }
 
-          return checked
-        },
-        fn: [callback]
+            return checked
+          },
+          fn: [callback]
+        }
       }
     }
-    log(this.__EVENTS__)
   }
 }
