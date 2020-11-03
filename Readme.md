@@ -57,14 +57,14 @@ kb.on(['ctrl + c', 'ctrl + v'], ev => {
 
 ### API
 
-+ .on(actions<Array>, callback<Function>)
++ .on(actions`<Array>`, callback`<Function>`)
 > 监听键盘动作组合, 支持单组或双组。
 >> 双组时, 2组按键前后时差不能超过`300毫秒`, 否则视为2次独立的操作。
 >> **键名不区分大小写**
 
 ---
 
-+ .off(actions<Array>, callback<Function>)
++ .off(actions`<Array>`, callback`<Function>`)
 > 移除键盘监听。
 
 ---
