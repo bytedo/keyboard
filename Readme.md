@@ -1,6 +1,6 @@
 ## JS键盘热键
 > 支持各种按钮组合。原生js开发, 无任何依赖(不到`2KB`)。使用也非常简单。
->> 1.0版 功能键(Shift, Ctrl, Alt/Option, Win/Cmd)不区分左右。
+>> 1.x版 功能键(Shift, Ctrl, Alt/Option, Win/Cmd)不区分左右。
 
 
 ![keyboard](./keyboard.jpg)
@@ -13,6 +13,8 @@
 import Keyboard from 'http://unpkg.bytedo.org/@bytedo/keyboard/dist/index.js'
 
 var kb = new Keyboard()
+// 默认整个document监听, 也可以单独对局部起效
+// var kb = new Keyboard(document.querySelector('.foo'))
 
 // 同时按Ctrl键和C键, 触发回调
 kb.on(['ctrl + c'], ev => {
@@ -101,18 +103,18 @@ kb.on(['ctrl + c', 'ctrl + v'], ev => {
 | Numlock   |  numlock    | 数字键锁定键(87键以下的键盘没有) |
 | Backspace |  backspace  | 回退键(=号键右边那个) |
 | Tab       |  tab        | 制表符键 |
-| Cmd/Win   |  meta       | Command/Win键(1.0版不区别左右) |
+| Cmd/Win   |  meta       | Command/Win键(1.x版不区别左右) |
 | Space     |  space      | 空格键 |
-| Ctrl      |  ctrl       | Ctrl键(1.0版不区分左右) |
-| Shift     |  shift      | Shift键(1.0版不区分左右) |
-| Alt/Option|  alt        | Alt/Option键(1.0版不区分左右) |
-| Enter     |  enter      | 回车键(1.0版不区分小数字键盘的回车) |
+| Ctrl      |  ctrl       | Ctrl键(1.x版不区分左右) |
+| Shift     |  shift      | Shift键(1.x版不区分左右) |
+| Alt/Option|  alt        | Alt/Option键(1.x版不区分左右) |
+| Enter     |  enter      | 回车键(1.x版不区分小数字键盘的回车) |
 | '         |  '          | 单引号键 |
 | *         |  *          | 小数字键盘中的乘号 |
 | +         |  +          | 小数字键盘中的加号 |
-| -         |  -          | 小数字键盘中的减号;及主键盘中的减号 (1.0版不区分) |
-| /         |  /          | 小数字键盘中的除号;及主键盘中的斜杠 (1.0版不区分) |
-| 。        |  .          | 小数字键盘中的小数点;及主键盘中的句号 (1.0版不区分) |
+| -         |  -          | 小数字键盘中的减号;及主键盘中的减号 (1.x版不区分) |
+| /         |  /          | 小数字键盘中的除号;及主键盘中的斜杠 (1.x版不区分) |
+| 。        |  .          | 小数字键盘中的小数点;及主键盘中的句号 (1.x版不区分) |
 | ,         |  ,          | 逗号 |
 | ;         |  ;          | 分号 |
 | =         |  =          | 等号 |
