@@ -1,13 +1,18 @@
 {
   "name": "@bytedo/keyboard",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "支持各种按钮组合。原生js开发, 无任何依赖(不到2KB)。使用也非常简单。",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bytedo/keyboard.git"
   },
-  "keywords": ["keyboard", "hotkey", "shortcut", "yutent"],
+  "keywords": [
+    "keyboard",
+    "hotkey",
+    "shortcut",
+    "yutent"
+  ],
   "author": "yutent",
   "license": "MIT",
   "dependencies": {}

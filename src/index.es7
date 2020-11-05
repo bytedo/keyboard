@@ -45,14 +45,20 @@ function check(ev) {
 
 export default class Keyboard {
   constructor(elem) {
-    console.log(elem)
     this.$elem = elem
     hide(this, '__EVENTS__', {})
+    hide(this, 'paused', false)
 
     hide(
       this,
       '_keydown',
       bind(elem, ev => {
+        // 允许暂停
+        if (this.paused) {
+          return
+        }
+
+        // 屏蔽纯辅助键的监听
         if (MULTI_KEY_CODES.includes(ev.keyCode)) {
           return
         }
@@ -74,7 +80,7 @@ export default class Keyboard {
                 if (tmp) {
                   end = true
                   // 第2组一定有回调,无需判断
-                  next.fn.forEach(function(fn) {
+                  next.fn.forEach(function (fn) {
                     fn(ev)
                   })
                   break
@@ -92,7 +98,7 @@ export default class Keyboard {
             }
             // 有回调就触发
             if (item.fn) {
-              item.fn.forEach(function(fn) {
+              item.fn.forEach(function (fn) {
                 fn(ev)
               })
             }
@@ -105,6 +111,14 @@ export default class Keyboard {
         }
       })
     )
+  }
+
+  get disabled() {
+    return this.paused
+  }
+
+  set disabled(v) {
+    this.paused = !!v
   }
 
   destroy() {

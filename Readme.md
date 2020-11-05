@@ -59,6 +59,10 @@ kb.on(['ctrl + c', 'ctrl + v'], ev => {
 
 ### API
 
++ .disabled
+> 禁止属性, 允许临时暂时热键.
+
+
 + .on(actions`<Array>`, callback`<Function>`)
 > 监听键盘动作组合, 支持单组或双组。
 >> 双组时, 2组按键前后时差不能超过`300毫秒`, 否则视为2次独立的操作。
