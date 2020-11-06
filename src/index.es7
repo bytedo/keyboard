@@ -35,8 +35,11 @@ function check(ev) {
   }
 
   if (checked) {
-    for (let k of this.keys) {
-      checked = ev[`${k}Key`]
+    for (let k in this.keys) {
+      if (ev[k] !== this.keys[k]) {
+        checked = false
+        break
+      }
     }
   }
 
@@ -80,7 +83,7 @@ export default class Keyboard {
                 if (tmp) {
                   end = true
                   // 第2组一定有回调,无需判断
-                  next.fn.forEach(function (fn) {
+                  next.fn.forEach(function(fn) {
                     fn(ev)
                   })
                   break
@@ -98,7 +101,7 @@ export default class Keyboard {
             }
             // 有回调就触发
             if (item.fn) {
-              item.fn.forEach(function (fn) {
+              item.fn.forEach(function(fn) {
                 fn(ev)
               })
             }
@@ -133,27 +136,33 @@ export default class Keyboard {
     var passed = true // 语法检测通过
 
     act.forEach(it => {
-      var tmp = []
-      dict.push(tmp)
+      var tmp = {}
+
       it = it.split('+').map(k => {
         k = k.trim().toLowerCase()
         if (MULTI_KEYS[k]) {
-          if (tmp.includes(k)) {
+          if (tmp[`${k}Key`]) {
             passed = false
             console.error('功能键,同组中不能重复。⎣%s⎤', it)
           } else {
-            tmp.push(k)
+            tmp[`${k}Key`] = true
           }
         } else {
           if (tmp.key) {
             passed = false
             console.error('非功能键,同组不能出现多个。⎣%s⎤', it)
           } else {
-            tmp.key = KEY_DICT[k]
+            hide(tmp, 'key', KEY_DICT[k])
           }
         }
         return k
       })
+
+      for (let k in MULTI_KEYS) {
+        tmp[`${k}Key`] = tmp[`${k}Key`] || false
+      }
+
+      dict.push(tmp)
       keys.push(it.join('+'))
     })
 
