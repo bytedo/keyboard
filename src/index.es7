@@ -49,8 +49,10 @@ function check(ev) {
 export default class Keyboard {
   constructor(elem) {
     this.$elem = elem
+
     hide(this, '__EVENTS__', {})
     hide(this, 'paused', false)
+    hide(this, '__finally__', null)
 
     hide(
       this,
@@ -111,6 +113,10 @@ export default class Keyboard {
           if (end) {
             break
           }
+        }
+
+        if (this.__finally__) {
+          this.__finally__(ev)
         }
       })
     )
@@ -285,6 +291,12 @@ export default class Keyboard {
           this.__EVENTS__[first].fn = [callback]
         }
       }
+    }
+  }
+
+  finally(callback) {
+    if (typeof callback === 'function') {
+      this.__finally__ = callback
     }
   }
 }

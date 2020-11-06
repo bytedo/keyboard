@@ -79,6 +79,10 @@ kb.on(['ctrl + c', 'ctrl + v'], ev => {
 > 销毁整个键盘监听。
 
 
++ .finally(callback`<Function>`)
+> 类似Promise.finally, 只要有按键被按下(除了纯辅助功能键外), 都会触发回调.
+
+
 ### 键名对照表
 > 键名不区别大小写, 内部统一转为小写。
 
